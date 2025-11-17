@@ -1,14 +1,34 @@
-name: Build Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
     branches: [ main ]
+  release:
+    types: [ published ]
   workflow_dispatch:
+    inputs:
+      image_name:
+        description: '自定义镜像名称'
+        required: false
+        default: 'argosbx-proxy'
+      image_tag:
+        description: '自定义镜像标签'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  # 使用输入参数或默认值
+  IMAGE_NAME: ${{ github.event.inputs.image_name || 'argosbx-proxy' }}
+  IMAGE_TAG: ${{ github.event.inputs.image_tag || 'latest' }}
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+      packages: write
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -16,64 +36,61 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      run: |
-        docker build -f docker/Dockerfile -t argosbx-proxy .
-        echo "✅ Docker 镜像构建成功"
-
-    - name: Test the image
-      run: |
-        echo "🧪 测试运行容器..."
-        docker run -d --name test-argosbx argosbx-proxy
-        sleep 20
-        echo "=== 容器日志 ==="
-        docker logs test-argosbx --tail 30
-        echo "=== 停止容器 ==="
-        docker stop test-argosbx
-        docker rm test-argosbx
-        echo "✅ 测试完成!"
-
-    - name: Save image
-      run: |
-        docker save argosbx-proxy -o argosbx-proxy.tar
-        echo "💾 镜像已保存: argosbx-proxy.tar ($(du -h argosbx-proxy.tar | cut -f1))"
-        
-    - name: Upload Docker image
-      uses: actions/upload-artifact@v4
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
       with:
-        name: argosbx-docker-image
-        path: argosbx-proxy.tar
-        retention-days: 30
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Show usage instructions
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=raw,value=${{ env.IMAGE_TAG }}
+          type=ref,event=branch
+          type=semver,pattern={{version}}
+          type=sha,prefix=
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Display image information
       run: |
-        echo ""
-        echo "🎉 Argosbx Docker 镜像构建成功!"
-        echo "=========================================="
-        echo ""
-        echo "📥 下载和使用:"
-        echo "1. 点击上方的 'argosbx-docker-image' 下载镜像文件"
-        echo "2. 在服务器上执行: docker load -i argosbx-proxy.tar"
-        echo "3. 运行容器: docker run -d --name argosbx argosbx-proxy"
-        echo "4. 查看节点: docker exec argosbx agsbx list"
-        echo ""
-        echo "🔧 常用命令:"
-        echo "查看日志: docker logs argosbx"
-        echo "重启服务: docker exec argosbx agsbx res"
-        echo "重置配置: docker exec argosbx agsbx rep"
-        echo "卸载删除: docker exec argosbx agsbx del"
-        echo ""
-        echo "🌐 带端口映射运行:"
-        echo "docker run -d \\"
-        echo "  -p 443:443 -p 8443:8443 -p 2053:2053 \\"
-        echo "  -p 2083:2083 -p 2087:2087 -p 2095:2095 \\"
-        echo "  --name argosbx \\"
-        echo "  argosbx-proxy"
-        echo ""
-        echo "⚙️  自定义配置运行:"
-        echo "docker run -d \\"
-        echo "  -e vlpt=443 -e hypt=8443 -e warp=s4x6 \\"
-        echo "  -e name=my-proxy \\"
-        echo "  -p 443:443 -p 8443:8443 \\"
-        echo "  --name argosbx \\"
-        echo "  argosbx-proxy"
+        echo "✅ Docker 镜像构建和推送成功!"
+        echo "📦 镜像名称: ${{ env.IMAGE_NAME }}"
+        echo "🏷️  镜像标签: ${{ env.IMAGE_TAG }}"
+        echo "📍 完整地址: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+        echo "🔗 拉取命令: docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+        
+    - name: Create usage summary
+      run: |
+        echo "## 🐳 Docker 镜像构建成功" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 镜像信息" >> $GITHUB_STEP_SUMMARY
+        echo "- **镜像名称**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **镜像标签**: ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **完整地址**: \`${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 使用命令" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "# 拉取镜像" >> $GITHUB_STEP_SUMMARY
+        echo "docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# 运行容器" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -d \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name my-argosbx \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -p 443:443 -p 8443:8443 \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
