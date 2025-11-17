@@ -1,4 +1,3 @@
-
 #!/bin/sh
 export LANG=en_US.UTF-8
 [ -z "${vlpt+x}" ] || vlp=yes
@@ -1032,6 +1031,79 @@ else
 echo "Argo：未启用"
 fi
 }
+check_and_restart_kernels(){
+echo
+echo "=========检测内核运行状态========="
+restart_needed=false
+
+# 检查Sing-box
+if echo "$(find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null)" | grep -Eq 'agsbx/s' || pgrep -f 'agsbx/s' >/dev/null 2>&1; then
+echo "✓ Sing-box：运行中"
+else
+echo "✗ Sing-box：未运行，尝试重启..."
+if [ -e "$HOME/agsbx/sing-box" ] && [ -e "$HOME/agsbx/sb.json" ]; then
+if pidof systemd >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+systemctl restart sb >/dev/null 2>&1
+elif command -v rc-service >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+rc-service sing-box restart >/dev/null 2>&1
+else
+nohup "$HOME/agsbx/sing-box" run -c "$HOME/agsbx/sb.json" >/dev/null 2>&1 &
+fi
+sleep 2
+restart_needed=true
+fi
+fi
+
+# 检查Xray
+if echo "$(find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null)" | grep -Eq 'agsbx/x' || pgrep -f 'agsbx/x' >/dev/null 2>&1; then
+echo "✓ Xray：运行中"
+else
+echo "✗ Xray：未运行，尝试重启..."
+if [ -e "$HOME/agsbx/xray" ] && [ -e "$HOME/agsbx/xr.json" ]; then
+if pidof systemd >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+systemctl restart xr >/dev/null 2>&1
+elif command -v rc-service >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+rc-service xray restart >/dev/null 2>&1
+else
+nohup "$HOME/agsbx/xray" run -c "$HOME/agsbx/xr.json" >/dev/null 2>&1 &
+fi
+sleep 2
+restart_needed=true
+fi
+fi
+
+# 检查Argo
+if echo "$(find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null)" | grep -Eq 'agsbx/c' || pgrep -f 'agsbx/c' >/dev/null 2>&1; then
+echo "✓ Argo：运行中"
+else
+echo "✗ Argo：未运行，尝试重启..."
+if [ -e "$HOME/agsbx/cloudflared" ]; then
+if [ -e "$HOME/agsbx/sbargotoken.log" ]; then
+if pidof systemd >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+systemctl restart argo >/dev/null 2>&1
+elif command -v rc-service >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
+rc-service argo restart >/dev/null 2>&1
+else
+nohup "$HOME/agsbx/cloudflared" tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token "$(cat $HOME/agsbx/sbargotoken.log 2>/dev/null)" >/dev/null 2>&1 &
+fi
+else
+if [ -e "$HOME/agsbx/xr.json" ]; then
+nohup "$HOME/agsbx/cloudflared" tunnel --url http://localhost:"$(grep -A2 vmess-xr "$HOME/agsbx/xr.json" | tail -1 | tr -cd 0-9)" --edge-ip-version auto --no-autoupdate --protocol http2 > "$HOME/agsbx/argo.log" 2>&1 &
+elif [ -e "$HOME/agsbx/sb.json" ]; then
+nohup "$HOME/agsbx/cloudflared" tunnel --url http://localhost:"$(grep -A2 vmess-sb "$HOME/agsbx/sb.json" | tail -1 | tr -cd 0-9)" --edge-ip-version auto --no-autoupdate --protocol http2 > "$HOME/agsbx/argo.log" 2>&1 &
+fi
+fi
+sleep 2
+restart_needed=true
+fi
+fi
+
+if [ "$restart_needed" = true ]; then
+echo
+echo "已尝试重启未运行的内核，请稍等..."
+sleep 3
+fi
+}
 cip(){
 ipbest(){
 serip=$( (command -v curl >/dev/null 2>&1 && (curl -s4m5 -k "$v46url" 2>/dev/null || curl -s6m5 -k "$v46url" 2>/dev/null) ) || (command -v wget >/dev/null 2>&1 && (timeout 3 wget -4 -qO- --tries=2 "$v46url" 2>/dev/null || timeout 3 wget -6 -qO- --tries=2 "$v46url" 2>/dev/null) ) )
@@ -1373,7 +1445,8 @@ echo
 else
 echo "Argosbx脚本已安装"
 echo
-argosbxstatus
+# 检测并重启未运行的内核
+check_and_restart_kernels
 echo
 echo "相关快捷方式如下："
 showmode
