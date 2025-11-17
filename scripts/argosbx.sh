@@ -21,7 +21,7 @@ else
 fi
 export uuid=${uuid:-''}
 export port_vl_re=${vlpt:-''}
-export port_vm_ws=${vmpt:-''}
+export port_vm_ws=${vmpt:-'35411'}
 export port_hy2=${hypt:-''}
 export port_tu=${tupt:-''}
 export port_xh=${xhpt:-''}
@@ -32,7 +32,7 @@ export port_ss=${sspt:-''}
 export port_so=${sopt:-''}
 export ym_vl_re=${reym:-''}
 export cdnym=${cdnym:-''}
-export argo=${argo:-'35411'}
+export argo=${argo:-''}
 export ARGO_DOMAIN=${agn:-'hu.mymy.qzz.io'}
 export ARGO_AUTH=${agk:-'eyJhIjoiOGYxYWQ0ZjBmZmQwNzY1NjQ3YmM0ZjkxYWI5NjcyMDkiLCJ0IjoiMzM1N2Y2NGYtZWE3NC00ZTU3LWE3NmMtNzMwZTA5MTVlYzM4IiwicyI6IlpEYzVORFprTmpFdFlUbGlaUzAwTlRFeExUaG1ORE10TkRnM01qQmxPRGhtTldaaiJ9'}
 export ippz=${ippz:-''}
