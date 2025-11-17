@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  argosbx:
+    image: ${DOCKER_IMAGE:-ghcr.io/m-longggg/argosbx-proxy:latest}
+    container_name: ${CONTAINER_NAME:-argosbx-server}
+    hostname: ${HOSTNAME:-argosbx}
+    restart: unless-stopped
+    environment:
+      - uuid=${UUID}
+      - vlpt=${VLPORT}
+      - vmpt=${VMPORT}
+      - hypt=${HYPORT}
+      - tupt=${TUPORT}
+      - xhpt=${XHPORT}
+      - vxpt=${VXPORT}
+      - anpt=${ANPORT}
+      - arpt=${ARPORT}
+      - sspt=${SSPORT}
+      - sopt=${SOPORT}
+      - reym=${REALITY_DOMAIN:-apple.com}
+      - cdnym=${CDN_DOMAIN}
+      - argo=${ENABLE_ARGO}
+      - ARGO_DOMAIN=${ARGO_DOMAIN}
+      - ARGO_AUTH=${ARGO_AUTH}
+      - ippz=${IP_PREFERENCE}
+      - warp=${WARP_CONFIG}
+      - name=${NODE_PREFIX}
+    ports:
+      - "443:443"
+      - "8443:8443"
+      - "2053:2053"
+      - "2083:2083"
+      - "2087:2087"
+      - "2095:2095"
+      - "2096:2096"
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - agsbx_data:/root/agsbx
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "agsbx/(s|x)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  agsbx_data:
