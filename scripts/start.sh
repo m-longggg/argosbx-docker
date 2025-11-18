@@ -1,5 +1,7 @@
 #!/bin/sh
 export LANG=en_US.UTF-8
+
+# 协议变量检查
 [ -z "${vlpt+x}" ] || vlp=yes
 [ -z "${vmpt+x}" ] || { vmp=yes; vmag=yes; } 
 [ -z "${hypt+x}" ] || hyp=yes
@@ -11,13 +13,17 @@ export LANG=en_US.UTF-8
 [ -z "${arpt+x}" ] || arp=yes
 [ -z "${sopt+x}" ] || sop=yes
 [ -z "${warp+x}" ] || wap=yes
+
+# 安装检查
 if find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' || pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then
-if [ "$1" = "rep" ]; then
-[ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：rep重置协议时，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
-fi
+    if [ "$1" = "rep" ]; then
+        [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：rep重置协议时，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
+    fi
 else
-[ "$1" = "del" ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：未安装argosbx脚本，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
+    [ "$1" = "del" ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：未安装argosbx脚本，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
 fi
+
+# 环境变量设置
 export uuid=${uuid:-''}
 export port_vl_re=${vlpt:-''}
 export port_vm_ws=${vmpt:-'35411'}
@@ -37,8 +43,10 @@ export ARGO_AUTH=${agk:-'eyJhIjoiOGYxYWQ0ZjBmZmQwNzY1NjQ3YmM0ZjkxYWI5NjcyMDkiLCJ
 export ippz=${ippz:-''}
 export warp=${warp:-''}
 export name=${name:-''}
+
 v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/m-longggg/argosbx-docker/refs/heads/main/scripts/argosbx.sh"
+
 showmode(){
 echo "主脚本：bash <(curl -Ls https://raw.githubusercontent.com/m-longggg/argosbx-docker/refs/heads/main/scripts/argosbx.sh) 或 bash <(wget -qO- https://raw.githubusercontent.com/m-longggg/argosbx-docker/refs/heads/main/scripts/argosbx.sh)"
 echo "显示节点信息命令：agsbx list 【或者】 主脚本 list"
@@ -61,12 +69,14 @@ x86_64) cpu=amd64;;
 *) echo "目前脚本不支持$(uname -m)架构" && exit
 esac
 mkdir -p "$HOME/agsbx"
+
 v4v6(){
 v4=$( (command -v curl >/dev/null 2>&1 && curl -s4m5 -k "$v46url" 2>/dev/null) || (command -v wget >/dev/null 2>&1 && timeout 3 wget -4 --tries=2 -qO- "$v46url" 2>/dev/null) )
 v6=$( (command -v curl >/dev/null 2>&1 && curl -s6m5 -k "$v46url" 2>/dev/null) || (command -v wget >/dev/null 2>&1 && timeout 3 wget -6 --tries=2 -qO- "$v46url" 2>/dev/null) )
 v4dq=$( (command -v curl >/dev/null 2>&1 && curl -s4m5 -k https://ip.fm | sed -E 's/.*Location: ([^,]+(, [^,]+)*),.*/\1/' 2>/dev/null) || (command -v wget >/dev/null 2>&1 && timeout 3 wget -4 --tries=2 -qO- https://ip.fm | grep '<span class="has-text-grey-light">Location:' | tail -n1 | sed -E 's/.*>Location: <\/span>([^<]+)<.*/\1/' 2>/dev/null) )
 v6dq=$( (command -v curl >/dev/null 2>&1 && curl -s6m5 -k https://ip.fm | sed -E 's/.*Location: ([^,]+(, [^,]+)*),.*/\1/' 2>/dev/null) || (command -v wget >/dev/null 2>&1 && timeout 3 wget -6 --tries=2 -qO- https://ip.fm | grep '<span class="has-text-grey-light">Location:' | tail -n1 | sed -E 's/.*>Location: <\/span>([^<]+)<.*/\1/' 2>/dev/null) )
 }
+
 warpsx(){
 if [ -n "$name" ]; then
 sxname=$name-
@@ -129,6 +139,7 @@ fi
 uuid=$(cat "$HOME/agsbx/uuid")
 echo "UUID密码：$uuid"
 }
+
 installxray(){
 echo
 echo "=========启用xray内核========="
@@ -876,6 +887,183 @@ nohup "$HOME/agsbx/sing-box" run -c "$HOME/agsbx/sb.json" >/dev/null 2>&1 &
 fi
 fi
 }
+
+# 新增优化的Argo启动函数
+start_argo_service() {
+    echo "🚀 启动Cloudflared Argo隧道服务..."
+    
+    # 清理可能存在的残留进程
+    pkill -f "cloudflared" >/dev/null 2>&1
+    sleep 2
+    
+    local argo_type="临时"
+    local start_cmd=""
+    
+    # 检查固定Token方式
+    if [ -e "$HOME/agsbx/sbargotoken.log" ] && [ -s "$HOME/agsbx/sbargotoken.log" ]; then
+        local token=$(cat "$HOME/agsbx/sbargotoken.log")
+        if [ -n "$token" ]; then
+            argo_type="固定"
+            start_cmd="nohup '$HOME/agsbx/cloudflared' tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token '$token' > '$HOME/agsbx/argo.log' 2>&1 &"
+            echo "🔑 使用固定Token启动Argo隧道..."
+        fi
+    fi
+    
+    # 如果没有固定token，使用临时隧道方式
+    if [ -z "$start_cmd" ]; then
+        local vmess_port=""
+        
+        # 尝试从Xray配置获取端口
+        if [ -e "$HOME/agsbx/xr.json" ] && grep -q "vmess-xr" "$HOME/agsbx/xr.json" 2>/dev/null; then
+            vmess_port=$(grep -A2 "vmess-xr" "$HOME/agsbx/xr.json" | grep "port" | grep -o '[0-9]*' | head -1)
+        # 尝试从Sing-box配置获取端口
+        elif [ -e "$HOME/agsbx/sb.json" ] && grep -q "vmess-sb" "$HOME/agsbx/sb.json" 2>/dev/null; then
+            vmess_port=$(grep -A2 "vmess-sb" "$HOME/agsbx/sb.json" | grep "listen_port" | grep -o '[0-9]*' | head -1)
+        fi
+        
+        if [ -n "$vmess_port" ]; then
+            start_cmd="nohup '$HOME/agsbx/cloudflared' tunnel --url 'http://localhost:$vmess_port' --edge-ip-version auto --no-autoupdate --protocol http2 > '$HOME/agsbx/argo.log' 2>&1 &"
+            echo "🌐 使用临时隧道启动Argo（端口: $vmess_port）..."
+        else
+            echo "❌ 无法找到Vmess端口，Argo启动失败"
+            return 1
+        fi
+    fi
+    
+    # 执行启动命令
+    eval $start_cmd
+    local argo_pid=$!
+    
+    # 等待进程启动
+    sleep 5
+    
+    # 验证启动是否成功
+    if ps -p $argo_pid >/dev/null 2>&1 || pgrep -f "cloudflared" >/dev/null 2>&1; then
+        echo "✅ Argo${argo_type}隧道启动成功"
+        
+        # 获取Argo域名
+        local argodomain=""
+        if [ "$argo_type" = "固定" ] && [ -e "$HOME/agsbx/sbargoym.log" ]; then
+            argodomain=$(cat "$HOME/agsbx/sbargoym.log")
+        else
+            # 从日志中提取临时域名
+            for i in {1..10}; do
+                if [ -f "$HOME/agsbx/argo.log" ]; then
+                    argodomain=$(grep -a trycloudflare.com "$HOME/agsbx/argo.log" 2>/dev/null | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
+                    [ -n "$argodomain" ] && break
+                fi
+                sleep 2
+            done
+        fi
+        
+        if [ -n "$argodomain" ]; then
+            echo "🌍 Argo域名: $argodomain"
+            echo "$argodomain" > "$HOME/agsbx/current_argo_domain.log"
+        else
+            echo "⚠️  无法获取Argo域名，请检查日志: $HOME/agsbx/argo.log"
+        fi
+        
+        return 0
+    else
+        echo "❌ Argo启动失败，请检查日志: $HOME/agsbx/argo.log"
+        return 1
+    fi
+}
+
+# 优化安装函数中的Argo部分
+install_argo_tunnel() {
+    if [ -n "$argo" ] && [ -n "$vmag" ]; then
+        echo
+        echo "=========启用Cloudflared Argo隧道服务========="
+        
+        # 下载cloudflared
+        if [ ! -e "$HOME/agsbx/cloudflared" ]; then
+            echo "📥 下载Cloudflared最新版本..."
+            argocore=$({ command -v curl >/dev/null 2>&1 && curl -Ls https://data.jsdelivr.com/v1/package/gh/cloudflare/cloudflared || wget -qO- https://data.jsdelivr.com/v1/package/gh/cloudflare/cloudflared; } | grep -Eo '"[0-9.]+"' | sed -n 1p | tr -d '",')
+            url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$cpu"
+            out="$HOME/agsbx/cloudflared"
+            
+            if command -v curl >/dev/null 2>&1; then
+                curl -Lo "$out" -# --retry 3 "$url"
+            elif command -v wget >/dev/null 2>&1; then
+                wget -O "$out" --tries=3 "$url"
+            else
+                echo "❌ 无法下载cloudflared，请安装curl或wget"
+                return 1
+            fi
+            
+            if [ -f "$out" ]; then
+                chmod +x "$out"
+                echo "✅ Cloudflared下载完成"
+            else
+                echo "❌ Cloudflared下载失败"
+                return 1
+            fi
+        fi
+        
+        # 保存Argo配置（如果是固定配置）
+        if [ -n "${ARGO_DOMAIN}" ] && [ -n "${ARGO_AUTH}" ]; then
+            echo "${ARGO_DOMAIN}" > "$HOME/agsbx/sbargoym.log"
+            echo "${ARGO_AUTH}" > "$HOME/agsbx/sbargotoken.log"
+            echo "💾 已保存固定Argo配置"
+        fi
+        
+        # 启动Argo服务
+        start_argo_service
+    fi
+}
+
+# 优化检测和重启函数
+check_and_restart_argo() {
+    echo "🔍 检测Argo隧道状态..."
+    
+    local argo_running=false
+    
+    # 多种方式检测Argo是否运行
+    if pgrep -f "cloudflared" >/dev/null 2>&1 || \
+       pgrep -f "agsbx/cloudflared" >/dev/null 2>&1 || \
+       ps aux | grep -v grep | grep -q "cloudflared.*tunnel"; then
+        argo_running=true
+    fi
+    
+    if $argo_running; then
+        echo "✅ Argo：运行中"
+        
+        # 获取当前Argo域名
+        local current_domain=""
+        if [ -f "$HOME/agsbx/current_argo_domain.log" ]; then
+            current_domain=$(cat "$HOME/agsbx/current_argo_domain.log")
+        elif [ -f "$HOME/agsbx/sbargoym.log" ]; then
+            current_domain=$(cat "$HOME/agsbx/sbargoym.log")
+        else
+            # 尝试从进程参数获取
+            current_domain=$(ps aux | grep cloudflared | grep -oP 'trycloudflare.com/\K[^ ]+' | head -1)
+        fi
+        
+        if [ -n "$current_domain" ]; then
+            echo "🌍 当前域名: $current_domain"
+        fi
+        
+        return 0
+    else
+        echo "❌ Argo：未运行"
+        
+        # 检查是否配置了Argo
+        if [ -n "$argo" ] && [ -n "$vmag" ]; then
+            echo "🔄 尝试重启Argo隧道..."
+            if start_argo_service; then
+                return 0
+            else
+                echo "❌ Argo重启失败"
+                return 1
+            fi
+        else
+            echo "ℹ️  Argo未配置启用，跳过启动"
+            return 2
+        fi
+    fi
+}
+
 ins(){
 if [ "$hyp" != yes ] && [ "$tup" != yes ] && [ "$anp" != yes ] && [ "$arp" != yes ] && [ "$ssp" != yes ]; then
 installxray
@@ -899,74 +1087,12 @@ xrsbso
 warpsx
 xrsbout
 fi
-if [ -n "$argo" ] && [ -n "$vmag" ]; then
-echo
-echo "=========启用Cloudflared-argo内核========="
-if [ ! -e "$HOME/agsbx/cloudflared" ]; then
-argocore=$({ command -v curl >/dev/null 2>&1 && curl -Ls https://data.jsdelivr.com/v1/package/gh/cloudflare/cloudflared || wget -qO- https://data.jsdelivr.com/v1/package/gh/cloudflare/cloudflared; } | grep -Eo '"[0-9.]+"' | sed -n 1p | tr -d '",')
-echo "下载Cloudflared-argo最新正式版内核：$argocore"
-url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$cpu"; out="$HOME/agsbx/cloudflared"; (command -v curl>/dev/null 2>&1 && curl -Lo "$out" -# --retry 2 "$url") || (command -v wget>/dev/null 2>&1 && timeout 3 wget -O "$out" --tries=2 "$url")
-chmod +x "$HOME/agsbx/cloudflared"
-fi
-if [ -n "${ARGO_DOMAIN}" ] && [ -n "${ARGO_AUTH}" ]; then
-argoname='固定'
-if pidof systemd >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
-cat > /etc/systemd/system/argo.service <<EOF
-[Unit]
-Description=argo service
-After=network.target
-[Service]
-Type=simple
-NoNewPrivileges=yes
-TimeoutStartSec=0
-ExecStart=/root/agsbx/cloudflared tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token "${ARGO_AUTH}"
-Restart=on-failure
-RestartSec=5s
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl daemon-reload >/dev/null 2>&1
-systemctl enable argo >/dev/null 2>&1
-systemctl start argo >/dev/null 2>&1
-elif command -v rc-service >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
-cat > /etc/init.d/argo <<EOF
-#!/sbin/openrc-run
-description="argo service"
-command="/root/agsbx/cloudflared tunnel"
-command_args="--no-autoupdate --edge-ip-version auto --protocol http2 run --token ${ARGO_AUTH}"
-pidfile="/run/argo.pid"
-command_background="yes"
-depend() {
-need net
-}
-EOF
-chmod +x /etc/init.d/argo >/dev/null 2>&1
-rc-update add argo default >/dev/null 2>&1
-rc-service argo start >/dev/null 2>&1
-else
-nohup "$HOME/agsbx/cloudflared" tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token "${ARGO_AUTH}" >/dev/null 2>&1 &
-fi
-echo "${ARGO_DOMAIN}" > "$HOME/agsbx/sbargoym.log"
-echo "${ARGO_AUTH}" > "$HOME/agsbx/sbargotoken.log"
-else
-argoname='临时'
-nohup "$HOME/agsbx/cloudflared" tunnel --url http://localhost:"${port_vm_ws}" --edge-ip-version auto --no-autoupdate --protocol http2 > "$HOME/agsbx/argo.log" 2>&1 &
-fi
-echo "申请Argo$argoname隧道中……请稍等"
-sleep 8
-if [ -n "${ARGO_DOMAIN}" ] && [ -n "${ARGO_AUTH}" ]; then
-argodomain=$(cat "$HOME/agsbx/sbargoym.log" 2>/dev/null)
-else
-argodomain=$(grep -a trycloudflare.com "$HOME/agsbx/argo.log" 2>/dev/null | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
-fi
-if [ -n "${argodomain}" ]; then
-echo "Argo$argoname隧道申请成功"
-else
-echo "Argo$argoname隧道申请失败，请稍后再试"
-fi
-fi
-echo
-if find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' || pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1 ; then
+
+# 使用新的Argo安装函数
+install_argo_tunnel
+
+# 原有的服务管理和crontab设置
+if find /proc/*/exe -type l 2>/dev/null | grep -Eq 'agsbx/(s|x)' || pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1 ; then
 [ -f ~/.bashrc ] || touch ~/.bashrc
 sed -i '/agsbx/d' ~/.bashrc
 SCRIPT_PATH="$HOME/bin/agsbx"
@@ -974,7 +1100,7 @@ mkdir -p "$HOME/bin"
 (command -v curl >/dev/null 2>&1 && curl -sL "$agsbxurl" -o "$SCRIPT_PATH") || (command -v wget >/dev/null 2>&1 && wget -qO "$SCRIPT_PATH" "$agsbxurl")
 chmod +x "$SCRIPT_PATH"
 if ! pidof systemd >/dev/null 2>&1 && ! command -v rc-service >/dev/null 2>&1; then
-echo "if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then echo '检测到系统可能中断过，或者变量格式错误？建议在SSH对话框输入 reboot 重启下服务器。现在自动执行Argosbx脚本的节点恢复操作，请稍等……'; sleep 6; export cdnym=\"${cdnym}\" name=\"${name}\" ippz=\"${ippz}\" argo=\"${argo}\" uuid=\"${uuid}\" $wap=\"${warp}\" $xhp=\"${port_xh}\" $vxp=\"${port_vx}\" $ssp=\"${port_ss}\" $sop=\"${port_so}\" $anp=\"${port_an}\" $arp=\"${port_ar}\" $vlp=\"${port_vl_re}\" $vmp=\"${port_vm_ws}\" $hyp=\"${port_hy2}\" $tup=\"${port_tu}\" reym=\"${ym_vl_re}\" agn=\"${ARGO_DOMAIN}\" agk=\"${ARGO_AUTH}\"; bash "$HOME/bin/agsbx"; fi" >> ~/.bashrc
+echo "if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then echo '检测到系统可能中断过，或者变量格式错误？建议在SSH对话框输入 reboot 重启下服务器。现在自动执行Argosbx脚本的节点恢复操作，请稍等……'; sleep 6; export cdnym=\"${cdnym}\" name=\"${name}\" ippz=\"${ippz}\" argo=\"${argo}\" uuid=\"${uuid}\" $wap=\"${warp}\" $xhp=\"${port_xh}\" $vxp=\"${port_vx}\" $ssp=\"${port_ss}\" $sop=\"${port_so}\" $anp=\"${port_an}\" $arp=\"${port_ar}\" $vlp=\"${port_vl_re}\" $vmp=\"${port_vm_ws}\" $hyp=\"${port_hy2}\" $tup=\"${port_tu}\" reym=\"${ym_vl_re}\" agn=\"${ARGO_DOMAIN}\" agk=\"${ARGO_AUTH}\"; bash \"$HOME/bin/agsbx\"; fi" >> ~/.bashrc
 fi
 sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.bashrc
 echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
@@ -1012,6 +1138,7 @@ else
 echo "Argosbx脚本进程未启动，安装失败" && exit
 fi
 }
+
 argosbxstatus(){
 echo "=========当前三大内核运行状态========="
 procs=$(find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null)
@@ -1031,6 +1158,7 @@ else
 echo "Argo：未启用"
 fi
 }
+
 check_and_restart_kernels(){
 echo
 echo "=========检测内核运行状态========="
@@ -1078,88 +1206,14 @@ echo "  Xray未安装或配置文件缺失"
 fi
 fi
 
-# 检查Argo - 改进检测和启动逻辑
-argo_running=false
-
-# 多种方式检测Argo是否运行
-if pgrep -f "cloudflared" >/dev/null 2>&1 || \
-   pgrep -f "agsbx/cloudflared" >/dev/null 2>&1 || \
-   ps aux | grep -v grep | grep -q "cloudflared.*tunnel"; then
-    argo_running=true
-fi
-
-if $argo_running; then
-echo "✓ Argo：运行中"
-else
-echo "✗ Argo：未运行，尝试重启..."
-restart_argo_tunnel
-fi
+# 检查Argo
+check_and_restart_argo
 
 if [ "$restart_needed" = true ]; then
 echo
 echo "已尝试重启未运行的内核，请稍等..."
 sleep 3
 fi
-}
-
-# 新增Argo隧道重新生成函数
-restart_argo_tunnel() {
-    echo "  正在重新生成Argo隧道..."
-    
-    # 杀死任何现有的cloudflared进程
-    pkill -f "cloudflared" 2>/dev/null
-    sleep 2
-    
-    # 检查固定令牌配置
-    if [ -e "$HOME/agsbx/sbargotoken.log" ] && [ -s "$HOME/agsbx/sbargotoken.log" ]; then
-        echo "  使用固定隧道令牌启动Argo..."
-        if pidof systemd >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
-            systemctl restart argo >/dev/null 2>&1 && echo "  Argo重启成功" || echo "  Argo重启失败"
-        elif command -v rc-service >/dev/null 2>&1 && [ "$EUID" -eq 0 ]; then
-            rc-service argo restart >/dev/null 2>&1 && echo "  Argo重启成功" || echo "  Argo重启失败"
-        else
-            nohup "$HOME/agsbx/cloudflared" tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token "$(cat $HOME/agsbx/sbargotoken.log)" > "$HOME/agsbx/argo.log" 2>&1 &
-            echo "  Argo已启动（固定隧道）"
-        fi
-        
-    # 检查Vmess配置以创建临时隧道
-    elif [ -e "$HOME/agsbx/xr.json" ] && grep -q "vmess-xr" "$HOME/agsbx/xr.json"; then
-        port_vm_ws=$(grep -A2 "vmess-xr" "$HOME/agsbx/xr.json" | grep "port" | grep -o '[0-9]*' | head -1)
-        if [ -n "$port_vm_ws" ]; then
-            echo "  创建临时Argo隧道（端口:$port_vm_ws）..."
-            nohup "$HOME/agsbx/cloudflared" tunnel --url "http://localhost:$port_vm_ws" --edge-ip-version auto --no-autoupdate --protocol http2 > "$HOME/agsbx/argo.log" 2>&1 &
-            echo "  Argo已启动（临时隧道）"
-        else
-            echo "  无法获取Vmess端口"
-        fi
-        
-    elif [ -e "$HOME/agsbx/sb.json" ] && grep -q "vmess-sb" "$HOME/agsbx/sb.json"; then
-        port_vm_ws=$(grep -A2 "vmess-sb" "$HOME/agsbx/sb.json" | grep "listen_port" | grep -o '[0-9]*' | head -1)
-        if [ -n "$port_vm_ws" ]; then
-            echo "  创建临时Argo隧道（端口:$port_vm_ws）..."
-            nohup "$HOME/agsbx/cloudflared" tunnel --url "http://localhost:$port_vm_ws" --edge-ip-version auto --no-autoupdate --protocol http2 > "$HOME/agsbx/argo.log" 2>&1 &
-            echo "  Argo已启动（临时隧道）"
-        else
-            echo "  无法获取Vmess端口"
-        fi
-    else
-        echo "  Argo未配置或Vmess协议未启用"
-    fi
-    
-    # 等待并验证启动
-    sleep 5
-    if pgrep -f "cloudflared" >/dev/null 2>&1; then
-        restart_needed=true
-        echo "  Argo启动验证：成功"
-        
-        # 显示新隧道信息
-        argodomain=$(grep -a trycloudflare.com "$HOME/agsbx/argo.log" 2>/dev/null | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
-        if [ -n "$argodomain" ]; then
-            echo "  新Argo域名: $argodomain"
-        fi
-    else
-        echo "  Argo启动验证：失败，请检查日志 $HOME/agsbx/argo.log"
-    fi
 }
 
 cip(){
@@ -1346,47 +1400,57 @@ echo "客户端用户名：$uuid"
 echo "客户端密码：$uuid"
 echo
 fi
-argodomain=$(cat "$HOME/agsbx/sbargoym.log" 2>/dev/null)
-[ -z "$argodomain" ] && argodomain=$(grep -a trycloudflare.com "$HOME/agsbx/argo.log" 2>/dev/null | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
-if [ -n "$argodomain" ]; then
-rand() {
-[ -n "$RANDOM" ] && echo $((RANDOM % 256)) || od -An -N1 -tu1 /dev/urandom | tr -d ' '
-}
-for v in a b c d e f g h i j k ; do
-eval $v="$(rand).$(rand)"
-done
-vmatls_link1="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-443\", \"add\": \"104.16.$a\", \"port\": \"443\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link1" >> "$HOME/agsbx/jh.txt"
-vmatls_link2="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-8443\", \"add\": \"104.17.$b\", \"port\": \"8443\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link2" >> "$HOME/agsbx/jh.txt"
-vmatls_link3="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2053\", \"add\": \"104.18.$c\", \"port\": \"2053\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link3" >> "$HOME/agsbx/jh.txt"
-vmatls_link4="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2083\", \"add\": \"104.19.$d\", \"port\": \"2083\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link4" >> "$HOME/agsbx/jh.txt"
-vmatls_link5="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2087\", \"add\": \"104.20.$e\", \"port\": \"2087\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link5" >> "$HOME/agsbx/jh.txt"
-vmatls_link6="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2096\", \"add\": \"[2606:4700::0]\", \"port\": \"2096\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
-echo "$vmatls_link6" >> "$HOME/agsbx/jh.txt"
-vma_link7="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-80\", \"add\": \"104.21.$f\", \"port\": \"80\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link7" >> "$HOME/agsbx/jh.txt"
-vma_link8="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-8080\", \"add\": \"104.22.$g\", \"port\": \"8080\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link8" >> "$HOME/agsbx/jh.txt"
-vma_link9="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-8880\", \"add\": \"104.24.$h\", \"port\": \"8880\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link9" >> "$HOME/agsbx/jh.txt"
-vma_link10="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2052\", \"add\": \"104.25.$i\", \"port\": \"2052\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link10" >> "$HOME/agsbx/jh.txt"
-vma_link11="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2082\", \"add\": \"104.26.$j\", \"port\": \"2082\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link11" >> "$HOME/agsbx/jh.txt"
-vma_link12="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2086\", \"add\": \"104.27.$k\", \"port\": \"2086\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link12" >> "$HOME/agsbx/jh.txt"
-vma_link13="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2095\", \"add\": \"[2400:cb00:2049::0]\", \"port\": \"2095\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
-echo "$vma_link13" >> "$HOME/agsbx/jh.txt"
-sbtk=$(cat "$HOME/agsbx/sbargotoken.log" 2>/dev/null)
-if [ -n "$sbtk" ]; then
-nametn="当前Argo固定隧道token：$sbtk"
+
+# 优化Argo信息显示
+if check_and_restart_argo; then
+    local argodomain=""
+    if [ -f "$HOME/agsbx/current_argo_domain.log" ]; then
+        argodomain=$(cat "$HOME/agsbx/current_argo_domain.log")
+    elif [ -f "$HOME/agsbx/sbargoym.log" ]; then
+        argodomain=$(cat "$HOME/agsbx/sbargoym.log")
+    fi
+    
+    if [ -n "$argodomain" ]; then
+        rand() {
+        [ -n "$RANDOM" ] && echo $((RANDOM % 256)) || od -An -N1 -tu1 /dev/urandom | tr -d ' '
+        }
+        for v in a b c d e f g h i j k ; do
+        eval $v="$(rand).$(rand)"
+        done
+        vmatls_link1="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-443\", \"add\": \"104.16.$a\", \"port\": \"443\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link1" >> "$HOME/agsbx/jh.txt"
+        vmatls_link2="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-8443\", \"add\": \"104.17.$b\", \"port\": \"8443\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link2" >> "$HOME/agsbx/jh.txt"
+        vmatls_link3="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2053\", \"add\": \"104.18.$c\", \"port\": \"2053\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link3" >> "$HOME/agsbx/jh.txt"
+        vmatls_link4="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2083\", \"add\": \"104.19.$d\", \"port\": \"2083\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link4" >> "$HOME/agsbx/jh.txt"
+        vmatls_link5="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2087\", \"add\": \"104.20.$e\", \"port\": \"2087\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link5" >> "$HOME/agsbx/jh.txt"
+        vmatls_link6="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-tls-argo-$hostname-2096\", \"add\": \"[2606:4700::0]\", \"port\": \"2096\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+        echo "$vmatls_link6" >> "$HOME/agsbx/jh.txt"
+        vma_link7="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-80\", \"add\": \"104.21.$f\", \"port\": \"80\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link7" >> "$HOME/agsbx/jh.txt"
+        vma_link8="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-8080\", \"add\": \"104.22.$g\", \"port\": \"8080\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link8" >> "$HOME/agsbx/jh.txt"
+        vma_link9="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-8880\", \"add\": \"104.24.$h\", \"port\": \"8880\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link9" >> "$HOME/agsbx/jh.txt"
+        vma_link10="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2052\", \"add\": \"104.25.$i\", \"port\": \"2052\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link10" >> "$HOME/agsbx/jh.txt"
+        vma_link11="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2082\", \"add\": \"104.26.$j\", \"port\": \"2082\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link11" >> "$HOME/agsbx/jh.txt"
+        vma_link12="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2086\", \"add\": \"104.27.$k\", \"port\": \"2086\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link12" >> "$HOME/agsbx/jh.txt"
+        vma_link13="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${sxname}vmess-ws-argo-$hostname-2095\", \"add\": \"[2400:cb00:2049::0]\", \"port\": \"2095\", \"id\": \"$uuid\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$uuid-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+        echo "$vma_link13" >> "$HOME/agsbx/jh.txt"
+        sbtk=$(cat "$HOME/agsbx/sbargotoken.log" 2>/dev/null)
+        if [ -n "$sbtk" ]; then
+        nametn="当前Argo固定隧道token：$sbtk"
+        fi
+        argoshow=$(echo -e "Vmess主协议端口(Argo隧道端口)：$port_vm_ws\n当前Argo域名：$argodomain\n$nametn\n\n1、💣443端口的vmess-ws-tls-argo节点(优选IP与443系端口随便换)\n$vmatls_link1\n\n2、💣80端口的vmess-ws-argo节点(优选IP与80系端口随便换)\n$vma_link7\n")
+    fi
 fi
-argoshow=$(echo -e "Vmess主协议端口(Argo隧道端口)：$port_vm_ws\n当前Argo域名：$argodomain\n$nametn\n\n1、💣443端口的vmess-ws-tls-argo节点(优选IP与443系端口随便换)\n$vmatls_link1\n\n2、💣80端口的vmess-ws-argo节点(优选IP与80系端口随便换)\n$vma_link7\n")
-fi
+
 echo "---------------------------------------------------------"
 echo "$argoshow"
 echo "---------------------------------------------------------"
@@ -1395,6 +1459,7 @@ echo "========================================================="
 echo "相关快捷方式如下：(首次安装成功后需重连SSH，agsbx快捷方式才可生效)"
 showmode
 }
+
 cleandel(){
 for P in /proc/[0-9]*; do if [ -L "$P/exe" ]; then TARGET=$(readlink -f "$P/exe" 2>/dev/null); if echo "$TARGET" | grep -qE '/agsbx/c|/agsbx/s|/agsbx/x'; then PID=$(basename "$P"); kill "$PID" 2>/dev/null && echo "Killed $PID ($TARGET)" || echo "Could not kill $PID ($TARGET)"; fi; fi; done
 kill -15 $(pgrep -f 'agsbx/s' 2>/dev/null) $(pgrep -f 'agsbx/c' 2>/dev/null) $(pgrep -f 'agsbx/x' 2>/dev/null) >/dev/null 2>&1
@@ -1422,6 +1487,20 @@ done
 rm -rf /etc/init.d/{sing-box,xray,argo}
 fi
 }
+
+# 优化重启函数
+restart_argo_only() {
+    echo "🔄 重启Argo隧道服务..."
+    pkill -f "cloudflared" >/dev/null 2>&1
+    sleep 3
+    if start_argo_service; then
+        echo "✅ Argo重启成功"
+    else
+        echo "❌ Argo重启失败"
+    fi
+}
+
+# 主逻辑
 if [ "$1" = "del" ]; then
 cleandel
 rm -rf "$HOME/agsbx" "$HOME/agsb"
@@ -1453,24 +1532,12 @@ else
 nohup $HOME/agsbx/sing-box run -c $HOME/agsbx/sb.json >/dev/null 2>&1 &
 nohup $HOME/agsbx/xray run -c $HOME/agsbx/xr.json >/dev/null 2>&1 &
 fi
-if [ -e "$HOME/agsbx/sbargotoken.log" ]; then
-if ! pidof systemd >/dev/null 2>&1 && ! command -v rc-service >/dev/null 2>&1; then
-nohup $HOME/agsbx/cloudflared tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token $(cat $HOME/agsbx/sbargotoken.log 2>/dev/null) >/dev/null 2>&1 &
-fi
-else
-if [ -e "$HOME/agsbx/xr.json" ] && [ -e "$HOME/agsbx/argo.log" ]; then
-nohup $HOME/agsbx/cloudflared tunnel --url http://localhost:$(grep -A2 vmess-xr $HOME/agsbx/xr.json | tail -1 | tr -cd 0-9) --edge-ip-version auto --no-autoupdate --protocol http2 > $HOME/agsbx/argo.log 2>&1 &
-elif [ -e "$HOME/agsbx/sb.json" ] && [ -e "$HOME/agsbx/argo.log" ]; then
-nohup $HOME/agsbx/cloudflared tunnel --url http://localhost:$(grep -A2 vmess-sb $HOME/agsbx/sb.json | tail -1 | tr -cd 0-9) --edge-ip-version auto --no-autoupdate --protocol http2 > $HOME/agsbx/argo.log 2>&1 &
-fi
-fi
+restart_argo_only
 sleep 8
 echo "重启完成"
 exit
 fi
-if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then
-for P in /proc/[0-9]*; do if [ -L "$P/exe" ]; then TARGET=$(readlink -f "$P/exe" 2>/dev/null); if echo "$TARGET" | grep -qE '/agsbx/c|/agsbx/s|/agsbx/x'; then PID=$(basename "$P"); kill "$PID" 2>/dev/null && echo "Killed $PID ($TARGET)" || echo "Could not kill $PID ($TARGET)"; fi; fi; done
-kill -15 $(pgrep -f 'agsbx/s' 2>/dev/null) $(pgrep -f 'agsbx/c' 2>/dev/null) $(pgrep -f 'agsbx/x' 2>/dev/null) >/dev/null 2>&1
+
 v4orv6(){
 if [ -z "$( (command -v curl >/dev/null 2>&1 && curl -s4m5 -k "$v46url" 2>/dev/null) || (command -v wget >/dev/null 2>&1 && timeout 3 wget -4 -qO- --tries=2 "$v46url" 2>/dev/null) )" ]; then
 echo -e "nameserver 2a00:1098:2b::1\nnameserver 2a00:1098:2c::1" > /etc/resolv.conf
@@ -1487,6 +1554,10 @@ xsdns="8.8.8.8"
 sbdnsyx="ipv4_only"
 fi
 }
+
+if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then
+for P in /proc/[0-9]*; do if [ -L "$P/exe" ]; then TARGET=$(readlink -f "$P/exe" 2>/dev/null); if echo "$TARGET" | grep -qE '/agsbx/c|/agsbx/s|/agsbx/x'; then PID=$(basename "$P"); kill "$PID" 2>/dev/null && echo "Killed $PID ($TARGET)" || echo "Could not kill $PID ($TARGET)"; fi; fi; done
+kill -15 $(pgrep -f 'agsbx/s' 2>/dev/null) $(pgrep -f 'agsbx/c' 2>/dev/null) $(pgrep -f 'agsbx/x' 2>/dev/null) >/dev/null 2>&1
 v4orv6
 echo "VPS系统：$op"
 echo "CPU架构：$cpu"
