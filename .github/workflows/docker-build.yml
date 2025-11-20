@@ -10,7 +10,7 @@ on:
       image_name:
         description: '自定义镜像名称'
         required: false
-        default: 'argosbx-proxy'
+        default: 'argosbx'
       image_tag:
         description: '自定义镜像标签'
         required: false
@@ -19,7 +19,7 @@ on:
 env:
   REGISTRY: ghcr.io
   # 使用输入参数或默认值
-  IMAGE_NAME: ${{ github.event.inputs.image_name || 'argosbx-proxy' }}
+  IMAGE_NAME: ${{ github.event.inputs.image_name || 'argosbx' }}
   IMAGE_TAG: ${{ github.event.inputs.image_tag || 'latest' }}
 
 jobs:
